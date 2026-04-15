@@ -61,6 +61,21 @@ install_pkg() {
 }
 
 # ─────────────────────────────────────────────
+#  Preferences
+# ─────────────────────────────────────────────
+ask_preferences() {
+  section "Installation Options"
+  read -p "Install core terminal environment (Zsh, Tmux, Neovim)? [Y/n] " OPT_CORE
+  OPT_CORE=${OPT_CORE:-Y}
+  read -p "Install Claude Code? [y/N] " OPT_CLAUDE
+  OPT_CLAUDE=${OPT_CLAUDE:-N}
+  read -p "Install Gemini CLI? [y/N] " OPT_GEMINI
+  OPT_GEMINI=${OPT_GEMINI:-N}
+  read -p "Install OpenCode? [y/N] " OPT_OPENCODE
+  OPT_OPENCODE=${OPT_OPENCODE:-N}
+}
+
+# ─────────────────────────────────────────────
 #  1. System packages
 # ─────────────────────────────────────────────
 install_system_packages() {
@@ -362,14 +377,42 @@ install_gemini() {
 }
 
 # ─────────────────────────────────────────────
-#  9. Stow all packages
+#  9. OpenCode
+# ─────────────────────────────────────────────
+install_opencode() {
+  section "OpenCode"
+
+  if command -v opencode &>/dev/null; then
+    ok "OpenCode already installed ($(opencode --version 2>/dev/null || echo 'unknown version'))"
+  else
+    info "Installing OpenCode..."
+    install_pkg opencode
+    ok "OpenCode installed"
+  fi
+}
+
+# ─────────────────────────────────────────────
+#  10. Stow all packages
 # ─────────────────────────────────────────────
 stow_packages() {
   section "Stowing dotfiles"
 
   cd "$DOTFILES_DIR"
 
-  for pkg in nvim tmux zshrc claude gemini lazygit ghostty; do
+    local packages=()
+  if [[ "$OPT_CORE" =~ ^[Yy]$ ]]; then
+    packages+=(nvim tmux zshrc lazygit ghostty)
+  fi
+  if [[ "$OPT_CLAUDE" =~ ^[Yy]$ ]]; then packages+=(claude); fi
+  if [[ "$OPT_GEMINI" =~ ^[Yy]$ ]]; then packages+=(gemini); fi
+  if [[ "$OPT_OPENCODE" =~ ^[Yy]$ ]]; then packages+=(opencode); fi
+
+  if [[ ${#packages[@]} -eq 0 ]]; then
+    info "No packages selected to stow."
+    return
+  fi
+
+  for pkg in "${packages[@]}"; do
     if [[ ! -d "$pkg" ]]; then
       warn "Package '$pkg' not found in $DOTFILES_DIR — skipping"
       continue
@@ -403,22 +446,36 @@ print_summary() {
   echo -e "${BOLD}  Done. Manual steps remaining:${RESET}"
   echo -e "${BOLD}────────────────────────────────────────${RESET}"
   echo ""
-  echo -e "  ${CYAN}Zsh${RESET}"
-  echo "    Restart your shell, then run: p10k configure"
-  echo ""
-  echo -e "  ${CYAN}tmux${RESET}"
-  echo "    Start tmux, then press: Ctrl-a + I  (install plugins)"
-  echo ""
-  echo -e "  ${CYAN}Neovim${RESET}"
-  echo "    Open nvim — lazy.nvim will auto-install plugins on first launch"
-  echo "    Then run: :MasonInstall <lsp-server> for any LSP servers you need"
-  echo ""
-  echo -e "  ${CYAN}Claude Code${RESET}"
-  echo "    Run: claude  (follow auth prompts on first launch)"
-  echo ""
-  echo -e "  ${CYAN}Gemini CLI${RESET}"
-  echo "    Run: gemini  (follow auth prompts on first launch)"
-  echo ""
+  if [[ "$OPT_CORE" =~ ^[Yy]$ ]]; then
+    echo -e "  ${CYAN}Zsh${RESET}"
+    echo "    Restart your shell, then run: p10k configure"
+    echo ""
+    echo -e "  ${CYAN}tmux${RESET}"
+    echo "    Start tmux, then press: Ctrl-a + I  (install plugins)"
+    echo ""
+    echo -e "  ${CYAN}Neovim${RESET}"
+    echo "    Open nvim — lazy.nvim will auto-install plugins on first launch"
+    echo "    Then run: :MasonInstall <lsp-server> for any LSP servers you need"
+    echo ""
+  fi
+
+  if [[ "$OPT_CLAUDE" =~ ^[Yy]$ ]]; then
+    echo -e "  ${CYAN}Claude Code${RESET}"
+    echo "    Run: claude  (follow auth prompts on first launch)"
+    echo ""
+  fi
+
+  if [[ "$OPT_GEMINI" =~ ^[Yy]$ ]]; then
+    echo -e "  ${CYAN}Gemini CLI${RESET}"
+    echo "    Run: gemini  (follow auth prompts on first launch)"
+    echo ""
+  fi
+
+  if [[ "$OPT_OPENCODE" =~ ^[Yy]$ ]]; then
+    echo -e "  ${CYAN}OpenCode${RESET}"
+    echo "    Run: opencode  (follow auth prompts on first launch)"
+    echo ""
+  fi
 }
 
 # ─────────────────────────────────────────────
@@ -433,14 +490,21 @@ main() {
   detect_os
   info "Detected OS: $OS"
 
-  install_system_packages
-  install_fonts
-  install_zsh
-  install_zsh_catppuccin
-  install_tmux
-  install_neovim_extras
-  install_claude
-  install_gemini
+  ask_preferences
+
+  if [[ "$OPT_CORE" =~ ^[Yy]$ ]]; then
+    install_system_packages
+    install_fonts
+    install_zsh
+    install_zsh_catppuccin
+    install_tmux
+    install_neovim_extras
+  fi
+
+  if [[ "$OPT_CLAUDE" =~ ^[Yy]$ ]]; then install_claude; fi
+  if [[ "$OPT_GEMINI" =~ ^[Yy]$ ]]; then install_gemini; fi
+  if [[ "$OPT_OPENCODE" =~ ^[Yy]$ ]]; then install_opencode; fi
+
   stow_packages
   print_summary
 }
