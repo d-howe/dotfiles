@@ -244,6 +244,9 @@ return {
 					"golangci-lint",
 					"goimports",
 					"markdownlint",
+					"hadolint",
+					"jsonlint",
+					"vale",
 					"tree-sitter-cli",
 				},
 			})
