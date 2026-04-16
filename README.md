@@ -9,7 +9,7 @@ Personal configuration files managed with [GNU Stow](https://www.gnu.org/softwar
 | `nvim`  | `~/.config/nvim` | Neovim with lazy.nvim, LSP, Treesitter, Telescope, Catppuccin Macchiato |
 | `tmux`  | `~/.tmux.conf` | tmux with TPM, Catppuccin Macchiato theme, vi keys, Ctrl-a prefix |
 | `zshrc` | `~/.zshrc` | Zsh with Oh My Zsh, Powerlevel10k, Catppuccin Macchiato syntax highlighting, autosuggestions |
-| `ghostty` | `~/.config/ghostty/` | Ghostty terminal — Catppuccin Macchiato theme, JetBrainsMono Nerd Font 12pt |
+| `ghostty` | `~/.config/ghostty/` | Ghostty terminal — Catppuccin Macchiato theme, JetBrainsMono Nerd Font 16pt |
 | `lazygit` | `~/.config/lazygit/` | lazygit with Catppuccin Macchiato theme |
 | `claude` | `~/.claude/` | Global Claude Code config — CLAUDE.md and agent definitions |
 | `gemini` | `~/.gemini/` | Global Gemini CLI config — GEMINI.md, settings and agent definitions |

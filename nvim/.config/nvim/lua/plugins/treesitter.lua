@@ -9,8 +9,8 @@ return {
 			-- Minimal setup for the new nvim-treesitter
 			ts.setup({})
 
-			-- Install desired parsers
-			local parsers = { "bash", "c", "diff", "html", "lua", "luadoc", "markdown", "python", "vim", "vimdoc" }
+		-- Install desired parsers
+		local parsers = { "bash", "c", "diff", "go", "html", "json", "lua", "luadoc", "markdown", "python", "rust", "toml", "typescript", "vim", "vimdoc", "yaml" }
 			if ts.install then
 				ts.install(parsers)
 			end

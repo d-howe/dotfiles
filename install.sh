@@ -175,7 +175,7 @@ install_system_packages() {
     ok "Go already installed ($(go version | awk '{print $3}'))"
   else
     info "Installing Go..."
-    local go_version="1.26.1"
+    local go_version="1.26.2"
     local go_arch="amd64"
     [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]] && go_arch="arm64"
     local go_os="linux"
@@ -384,11 +384,24 @@ install_opencode() {
 
   if command -v opencode &>/dev/null; then
     ok "OpenCode already installed ($(opencode --version 2>/dev/null || echo 'unknown version'))"
-  else
-    info "Installing OpenCode..."
-    install_pkg opencode
-    ok "OpenCode installed"
+    return
   fi
+
+  info "Installing OpenCode..."
+  case "$OS" in
+  macos)
+    brew install opencode
+    ;;
+  debian | arch)
+    if command -v npm &>/dev/null; then
+      npm install -g opencode-ai
+    else
+      warn "npm not found — cannot install OpenCode on Linux"
+      return
+    fi
+    ;;
+  esac
+  ok "OpenCode installed"
 }
 
 # ─────────────────────────────────────────────
@@ -427,8 +440,11 @@ stow_packages() {
       mv "$HOME/.zshrc" "$backup"
     fi
 
-    local stow_output
-    if stow_output=$(stow --restow "$pkg" 2>&1 | grep -v "BUG in find_stowed_path"); then
+    local stow_output stow_exit
+    stow_output=$(stow --restow "$pkg" 2>&1)
+    stow_exit=$?
+    stow_output=$(printf '%s' "$stow_output" | grep -v "BUG in find_stowed_path" || true)
+    if [[ $stow_exit -eq 0 ]]; then
       ok "stow $pkg"
     else
       warn "stow $pkg failed:"

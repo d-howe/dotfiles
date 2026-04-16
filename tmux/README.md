@@ -49,8 +49,8 @@ The `mux` shell function (defined in `.zshrc`) spins up a named dev session with
 mux <session-name> [directory]
 ```
 
-*   Creates a new session with nvim on the left (60%) and `gemini`/`claude` on the right (40%)
-*   Detects `gemini` first, falls back to `claude`
+*   Creates a new session with nvim on the left (60%) and an AI tool on the right (40%)
+*   Prefers `opencode` if installed, then `gemini`, then `claude`
 *   If the session already exists, attaches to it instead (idempotent)
 *   Directory defaults to `$PWD` if not specified
 

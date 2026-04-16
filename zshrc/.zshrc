@@ -119,9 +119,9 @@ source $ZSH/oh-my-zsh.sh
 
 alias ll='ls -larthS'
 alias dev='cd ~/Development'
-alias gp="git branch | grep -v '^\*\|main$' | xargs git branch -d -f"
+alias gbpurge="git branch | grep -v '^\*\|main$' | xargs git branch -d -f"
 alias gc="git branch --merged | grep -v '^\*\|main$' | xargs git branch -d -f"
-alias gr='git reset --hard @{u}'
+alias grhu='git reset --hard @{u}'
 alias gl='git log --graph --abbrev-commit --oneline'
 alias gd='git diff main..HEAD'
 
@@ -138,10 +138,13 @@ mux() {
     cd "$session_dir" || return
     tmux new-session -d -s "$session_name" -n main 'nvim'
     
-    local ai_cmd="claude"
-    if command -v gemini &>/dev/null; then
-      ai_cmd="gemini"
-    fi
+  local ai_cmd="claude"
+  if command -v gemini &>/dev/null; then
+    ai_cmd="gemini"
+  fi
+  if command -v opencode &>/dev/null; then
+    ai_cmd="opencode"
+  fi
     
     tmux split-window -h -p 40 "$ai_cmd"
   fi
