@@ -1,36 +1,59 @@
+local parsers = {
+	"bash",
+	"c",
+	"css",
+	"diff",
+	"dockerfile",
+	"go",
+	"html",
+	"javascript",
+	"json",
+	"lua",
+	"luadoc",
+	"markdown",
+	"markdown_inline",
+	"python",
+	"rust",
+	"sql",
+	"terraform",
+	"toml",
+	"tsx",
+	"typescript",
+	"vim",
+	"vimdoc",
+	"yaml",
+}
+
 return {
-	{ -- Highlight, edit, and navigate code
+	{
 		"nvim-treesitter/nvim-treesitter",
 		branch = "main",
-		build = ":TSUpdate",
+		lazy = false,
+		build = function()
+			require("nvim-treesitter").install(parsers):wait(300000)
+		end,
 		config = function()
-			local ts = require("nvim-treesitter")
-			
-			-- Minimal setup for the new nvim-treesitter
-			ts.setup({})
+			local treesitter = require("nvim-treesitter")
+			treesitter.setup({
+				-- Passing this explicitly also prepends it to runtimepath.
+				install_dir = vim.fn.stdpath("data") .. "/site",
+			})
+			-- Complete first-run installs before filetype plugins try to use them.
+			treesitter.install(parsers):wait(300000)
 
-		-- Install desired parsers
-		local parsers = { "bash", "c", "diff", "go", "html", "json", "lua", "luadoc", "markdown", "python", "rust", "toml", "typescript", "vim", "vimdoc", "yaml" }
-			if ts.install then
-				ts.install(parsers)
-			end
-
-			-- Enable highlighting, indentation and folding via autocommands (new style)
 			vim.api.nvim_create_autocmd("FileType", {
-				callback = function()
-					local bufnr = vim.api.nvim_get_current_buf()
-					local lang = vim.bo[bufnr].filetype
-					
-					-- Only start for languages that have a parser
-					if lang ~= "" and pcall(vim.treesitter.get_parser, bufnr, lang) then
-						pcall(vim.treesitter.start)
-					end
+				callback = function(event)
+					local filetype = vim.bo[event.buf].filetype
+					local language = vim.treesitter.language.get_lang(filetype) or filetype
 
-					-- Enable treesitter-based indentation and folding
-					-- Note: Some languages might still need the old way, but this is the new standard
-					vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-					vim.wo.foldmethod = "expr"
-					vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+					if vim.tbl_contains(parsers, language)
+						and pcall(vim.treesitter.language.add, language)
+					then
+						pcall(vim.treesitter.start, event.buf, language)
+						vim.bo[event.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+						vim.wo.foldmethod = "expr"
+						vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+					end
 				end,
 			})
 		end,

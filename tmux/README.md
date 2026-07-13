@@ -43,14 +43,14 @@ Tmux relies on a **Prefix key**. You press and release the Prefix key, then pres
 
 ## 🤖 Session Launcher (`mux`)
 
-The `mux` shell function (defined in `.zshrc`) spins up a named dev session with a 60/40 nvim/AI split:
+The `mux` shell function (defined in `zshrc/init.zsh`) spins up a named dev session with a 60/40 nvim/AI split:
 
 ```bash
 mux <session-name> [directory]
 ```
 
 *   Creates a new session with nvim on the left (60%) and an AI tool on the right (40%)
-*   Prefers `opencode` if installed, then `gemini`, then `claude`
+*   Starts `cursor-agent`, falling back to `claude`
 *   If the session already exists, attaches to it instead (idempotent)
 *   Directory defaults to `$PWD` if not specified
 

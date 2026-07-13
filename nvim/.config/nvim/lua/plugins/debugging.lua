@@ -10,10 +10,6 @@ return {
 			-- Required dependency for nvim-dap-ui
 			"nvim-neotest/nvim-nio",
 
-			-- Installs the debug adapters for you
-			"williamboman/mason.nvim",
-			"jay-babu/mason-nvim-dap.nvim",
-
 			-- Add your own debuggers here
 			"leoluz/nvim-dap-go",
 			"mfussenegger/nvim-dap-python",
@@ -22,24 +18,9 @@ return {
 			local dap = require("dap")
 			local dapui = require("dapui")
 
-			require("mason-nvim-dap").setup({
-				-- Makes a best effort to setup the various debuggers with
-				-- reasonable debug configurations
-				automatic_installation = true,
-
-				-- You can provide additional configuration to the handlers,
-				-- see mason-nvim-dap README for more information
-				handlers = {},
-
-				-- You'll need to check that you have the required things installed
-				-- online, please don't ask me how to install them :)
-				ensure_installed = {
-					-- Update this to ensure that you have the debuggers for the langs you want
-					"debugpy",
-				},
-			})
-
-			require("dap-python").setup("~/.local/share/nvim/mason/packages/debugpy/venv/bin/python")
+			-- Nix provides debugpy and delve on PATH.
+			require("dap-python").setup(vim.fn.exepath("python3"))
+			require("dap-go").setup()
 
 			-- ==========================================
 			-- Extensible Test & Environment Runner Setup
@@ -156,7 +137,7 @@ return {
 					},
 				},
 				-- You can tweak these sizes permanently here.
-				-- By default nvim-dap-ui resets window sizes when it opens. 
+				-- By default nvim-dap-ui resets window sizes when it opens.
 				layouts = {
 					{
 						elements = {
