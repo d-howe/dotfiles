@@ -185,8 +185,8 @@ migrate_legacy_stow_links() {
   for target in "${targets[@]}"; do
     [[ -L "$target" ]] || continue
     resolved="$(resolve_link "$target" 2>/dev/null || true)"
-    if [[ "$target" == "$HOME/.config/opencode" ]] \
-      && cmp -s "$target/opencode.json" "$DOTFILES_DIR/opencode/.config/opencode/opencode.json"; then
+    if [[ "$target" == "$HOME/.config/opencode" ]] &&
+      cmp -s "$target/opencode.json" "$DOTFILES_DIR/opencode/.config/opencode/opencode.json"; then
       resolved="$DOTFILES_DIR/opencode/.config/opencode"
     fi
     if [[ "$resolved" == "$DOTFILES_DIR"/* ]]; then
@@ -289,10 +289,17 @@ main() {
 
   echo "Activating Home Manager profile ${profile}..."
   if ! nix run --impure "${flake_ref}#home-manager" -- \
-    switch --impure --flake "${flake_ref}#${profile}"; then
-    restore_ssh_config
-    restore_legacy_stow_links
-    exit 1
+    switch -b backup --impure --flake "${flake_ref}#${profile}"; then
+    # A non-zero exit after a generation is applied is non-fatal (for example,
+    # reloading systemd user units on an already-degraded session). Only roll
+    # back when Home Manager never activated; otherwise restoring the legacy
+    # Stow links would clobber the freshly linked configuration.
+    if [[ ! -e "$HOME/.local/state/nix/profiles/home-manager" ]]; then
+      restore_ssh_config
+      restore_legacy_stow_links
+      exit 1
+    fi
+    echo "Home Manager applied a generation but reported a non-fatal activation error; continuing." >&2
   fi
 
   set_login_shell
