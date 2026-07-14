@@ -84,6 +84,11 @@ in
       cursor-cli
       opencode
 
+      # Neovim in-editor image, diagram, and math rendering (Snacks.image)
+      imagemagick
+      mermaid-cli
+      tectonic
+
       # Fonts
       nerd-fonts.jetbrains-mono
     ]

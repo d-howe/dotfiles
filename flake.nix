@@ -8,18 +8,12 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    neovim-nightly = {
-      url = "github:nix-community/neovim-nightly-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
     inputs@{
       nixpkgs,
       home-manager,
-      neovim-nightly,
       ...
     }:
     let
@@ -53,7 +47,7 @@
           extraSpecialArgs = {
             inherit inputs system;
             dotfilesDir = identity.dotfilesDirectory;
-            neovimPackage = neovim-nightly.packages.${system}.default;
+            neovimPackage = pkgs.neovim;
           };
           modules = [
             ./home/default.nix
