@@ -36,7 +36,6 @@ in
       git
       gnumake
       jq
-      keychain
       lazygit
       ripgrep
       tree-sitter
@@ -130,14 +129,8 @@ in
       enable = true;
       plugins = [
         "git"
-        "keychain"
       ];
       theme = "";
-      extraConfig = ''
-        zstyle :omz:plugins:keychain agents ssh
-        zstyle :omz:plugins:keychain identities id_ed25519
-        zstyle :omz:plugins:keychain options --quiet
-      '';
     };
     plugins = [
       {
