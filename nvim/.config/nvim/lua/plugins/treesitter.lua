@@ -38,17 +38,17 @@ return {
 				-- Passing this explicitly also prepends it to runtimepath.
 				install_dir = vim.fn.stdpath("data") .. "/site",
 			})
-			-- Complete first-run installs before filetype plugins try to use them.
-			treesitter.install(parsers):wait(300000)
+			-- Repair missing parsers without blocking Neovim startup.
+			vim.schedule(function()
+				treesitter.install(parsers)
+			end)
 
 			vim.api.nvim_create_autocmd("FileType", {
 				callback = function(event)
 					local filetype = vim.bo[event.buf].filetype
 					local language = vim.treesitter.language.get_lang(filetype) or filetype
 
-					if vim.tbl_contains(parsers, language)
-						and pcall(vim.treesitter.language.add, language)
-					then
+					if vim.tbl_contains(parsers, language) and pcall(vim.treesitter.language.add, language) then
 						pcall(vim.treesitter.start, event.buf, language)
 						vim.bo[event.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
 						vim.wo.foldmethod = "expr"

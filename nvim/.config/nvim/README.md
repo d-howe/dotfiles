@@ -86,7 +86,7 @@ Activated per-buffer when a language server attaches.
 | `[d` / `]d` | Previous / next diagnostic |
 | `<leader>e` | Floating diagnostic detail |
 
-Nix installs the LSPs and tools declared in `home/default.nix`. Mason (`:Mason`) remains available as a read-only inspection UI.
+Nix installs the LSPs and tools declared in `home/default.nix`. Mason (`:Mason`) remains available for inspection or manual installs, but its mutable bin directory is not added to `PATH`, so it cannot shadow Nix-managed tools.
 
 ---
 

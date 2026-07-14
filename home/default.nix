@@ -82,6 +82,7 @@ in
       # AI command-line tools
       claude-code
       cursor-cli
+      opencode
 
       # Fonts
       nerd-fonts.jetbrains-mono
@@ -105,8 +106,21 @@ in
 
   programs.home-manager.enable = true;
 
+  # Keep decrypted SSH keys in a session-scoped agent without blocking shell
+  # startup. OpenSSH's AddKeysToAgent setting adds keys after the first use.
+  services.ssh-agent.enable = pkgs.stdenv.isLinux;
+
   programs.git = {
     enable = true;
+  };
+
+  programs.ssh = {
+    enable = true;
+    enableDefaultConfig = false;
+    includes = [ "~/.ssh/config.local" ];
+    settings."*" = {
+      AddKeysToAgent = "yes";
+    };
   };
 
   programs.delta = {
@@ -171,6 +185,9 @@ in
     ".config/nvim".source = outOfStore "nvim/.config/nvim";
     ".config/lazygit".source = outOfStore "lazygit/.config/lazygit";
     ".config/ghostty".source = outOfStore "ghostty/.config/ghostty";
+    ".config/opencode/opencode.json".source = outOfStore "opencode/.config/opencode/opencode.json";
+    ".config/opencode/OPENCODE.md".source = outOfStore "opencode/.config/opencode/OPENCODE.md";
+    ".config/opencode/agents".source = outOfStore "opencode/.config/opencode/agents";
     ".claude/CLAUDE.md".source = outOfStore "claude/.claude/CLAUDE.md";
     ".claude/agents".source = outOfStore "claude/.claude/agents";
   };

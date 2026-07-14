@@ -215,9 +215,9 @@ return {
 				},
 			}
 
-			-- Nix installs every server and tool, so Mason does not mutate the
-			-- environment or retry failed installations during startup.
-			require("mason").setup()
+			-- Nix installs every server and tool. Mason remains available for
+			-- inspection without shadowing the pinned binaries on PATH.
+			require("mason").setup({ PATH = "skip" })
 			for server_name, server in pairs(servers) do
 				server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
 				vim.lsp.config(server_name, server)
