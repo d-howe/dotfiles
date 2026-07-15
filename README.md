@@ -1,131 +1,135 @@
-# dotfiles
+# Dotfiles
 
-Personal configuration files managed with [GNU Stow](https://www.gnu.org/software/stow/).
+A pinned, repeatable development environment built with Nix flakes and Home
+Manager. The same configuration supports:
 
-## Packages
+- x86_64 Linux, including Ubuntu on WSL2
+- aarch64 Linux
+- Apple Silicon macOS
 
-| Package | Stow target | What it configures |
-|---------|-------------|-------------------|
-| `nvim`  | `~/.config/nvim` | Neovim with lazy.nvim, LSP, Treesitter, Telescope, Catppuccin Macchiato |
-| `tmux`  | `~/.tmux.conf` | tmux with TPM, Catppuccin Macchiato theme, vi keys, Ctrl-a prefix |
-| `zshrc` | `~/.zshrc` | Zsh with Oh My Zsh, Powerlevel10k, Catppuccin Macchiato syntax highlighting, autosuggestions |
-| `ghostty` | `~/.config/ghostty/` | Ghostty terminal — Catppuccin Macchiato theme, JetBrainsMono Nerd Font 16pt |
-| `lazygit` | `~/.config/lazygit/` | lazygit with Catppuccin Macchiato theme |
-| `claude` | `~/.claude/` | Global Claude Code config — CLAUDE.md and agent definitions |
-| `gemini` | `~/.gemini/` | Global Gemini CLI config — GEMINI.md, settings and agent definitions |
-| `opencode` | `~/.config/opencode/` | Global OpenCode config — OPENCODE.md, strict settings, and agent definitions |
+Intel macOS is excluded because current nixpkgs no longer supports it. The
+installer fails clearly rather than selecting an unmaintained package set.
+Linux installations require systemd; Ubuntu on WSL2 must have systemd enabled.
 
----
+## Install
 
-## Quick install
+Clone the repository anywhere under the target account, then run:
 
-```bash
-git clone https://github.com/<your-username>/dotfiles.git ~/dotfiles
+```sh
+git clone https://github.com/d-howe/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ./install.sh
 ```
 
-The script is interactive and lets you selectively install core system packages (Node.js, Go, Fonts, Zsh, TPM, Neovim) alongside your preferred AI CLI tools (Claude Code, Gemini CLI, OpenCode). It automatically stows your selected packages. Supports Debian/Ubuntu, Arch, and macOS.
+The installer:
 
-**After the script completes:**
+1. Detects the current OS and architecture.
+2. Downloads a pinned Determinate Nix installer and verifies its SHA-256 hash
+   when Nix is not already available.
+3. Builds the matching Home Manager profile before changing existing links.
+4. Migrates links previously created by Stow.
+5. Activates the exact versions pinned in `flake.lock`.
 
-| Step | Command |
-|------|---------|
-| Configure prompt | `p10k configure` |
-| Install tmux plugins | Start tmux, then `Ctrl-a + I` |
-| Install Neovim plugins | Open `nvim` — lazy.nvim auto-installs on first launch |
-| Install LSP servers | `:MasonInstall <server>` inside Neovim |
-| Authenticate Claude | `claude` (follow prompts on first launch) |
-| Authenticate Gemini | `gemini` (follow prompts on first launch) |
-| Authenticate OpenCode | `opencode` (follow prompts on first launch) |
+The username, home directory, and repository path are detected at runtime; no
+account-specific path is embedded in the configuration.
 
----
+Restart the shell after the first activation:
 
-## Manual install
-
-If you prefer to stow individual packages:
-
-```bash
-git clone https://github.com/<your-username>/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-
-stow nvim
-stow tmux
-stow zshrc
-stow ghostty
-stow lazygit
-stow claude
-stow gemini
-stow opencode
+```sh
+exec zsh
 ```
 
-### Claude agents
-The `claude` package symlinks `~/.claude/CLAUDE.md` and `~/.claude/agents/` globally.
-Agents are available in any project without any per-project config.
+## Maintain
 
-**Go agents:** `backend-go`, `qa-go`, `devops-go`, `security-go`, `review-go`
-**Python agents:** `backend-python`, `planning-python`, `qa-python`, `review-python`, `security-python`
+Reapply the current lock file:
 
-### Gemini agents
-The `gemini` package symlinks `~/.gemini/GEMINI.md` and `~/.gemini/agents/` globally.
-Agents are available in any project without any per-project config.
-
-**Agents:** `backend`, `planning`, `qa`, `review`, `security`
-
-### OpenCode agents
-The `opencode` package symlinks `~/.config/opencode/opencode.json`, `OPENCODE.md`, and `agents/` globally.
-Agents are tightly scoped via the OpenCode permission system to prevent destructive bash operations and enforce the use of built-in file editing tools.
-
-**Available subagents:** `backend-go`, `backend-python`, `frontend-angular`, `backend-rust`, `qa-*`, `security-*`, `review-*`
-
----
-
-## How Stow works
-
-Stow symlinks the **contents** of a package directory into the target directory (default: the parent of the dotfiles repo, i.e. `~`).
-
-```
-dotfiles/
-  tmux/
-    .tmux.conf       →  ~/.tmux.conf
-  nvim/
-    .config/
-      nvim/          →  ~/.config/nvim
-  claude/
-    .claude/
-      CLAUDE.md      →  ~/.claude/CLAUDE.md
-      agents/        →  ~/.claude/agents/
-  ghostty/
-    .config/
-      ghostty/       →  ~/.config/ghostty/
-  lazygit/
-    .config/
-      lazygit/       →  ~/.config/lazygit/
-  gemini/
-    .gemini/
-      GEMINI.md      →  ~/.gemini/GEMINI.md
-      settings.json  →  ~/.gemini/settings.json
-      agents/        →  ~/.gemini/agents/
-  opencode/
-    .config/
-      opencode/
-        opencode.json  →  ~/.config/opencode/opencode.json
-        OPENCODE.md    →  ~/.config/opencode/OPENCODE.md
-        agents/        →  ~/.config/opencode/agents/
+```sh
+./install.sh
 ```
 
-To remove symlinks for a package:
-```bash
-stow -D tmux
+Build the activation package without changing the active environment:
+
+```sh
+./install.sh --check
 ```
 
-To simulate what stow would do without making changes:
-```bash
-stow -n -v tmux
+Update all pinned inputs, including Neovim nightly and AI CLIs:
+
+```sh
+./install.sh --update
 ```
 
-If stow reports a conflict, the target file already exists. Back it up and remove it first:
-```bash
-mv ~/.tmux.conf ~/.tmux.conf.bak
-stow tmux
+Home Manager keeps previous generations. List or roll them back with:
+
+```sh
+home-manager generations
+home-manager switch --rollback
 ```
+
+## Managed tools
+
+Home Manager installs and configures:
+
+- Zsh, Oh My Zsh, Powerlevel10k, and shell plugins
+- tmux with Catppuccin and sensible
+- pinned Neovim nightly
+- Git, delta, lazygit, ripgrep, fd, fzf, jq, and terminal utilities
+- Go, Rust, Node.js, Python, C tooling, language servers, formatters, linters,
+  test dependencies, and debuggers used by the Neovim configuration
+- Claude Code, Cursor Agent, and OpenCode
+- JetBrains Mono Nerd Font
+
+Authenticate each AI CLI once after installation:
+
+```sh
+claude
+cursor-agent
+opencode
+```
+
+On Linux, Home Manager starts a user-scoped SSH agent. The first SSH operation
+after login asks for the key passphrase, then OpenSSH caches the key for the
+rest of that login session.
+
+## tmux development sessions
+
+`mux [session] [directory] [agent]` creates one tmux window with exactly two
+panes:
+
+- pane 1: Neovim
+- pane 2: the selected AI agent
+
+Supported agents are `cursor-agent`, `opencode`, and `claude`. Selection uses
+the third argument first, then `MUX_AGENT`, then defaults to Cursor Agent. An
+explicit unavailable agent returns an error; the implicit default falls back
+through Cursor Agent, OpenCode, and Claude Code.
+
+Set a machine-level default in the untracked `~/.zshrc.local`:
+
+```sh
+export MUX_AGENT=opencode
+```
+
+Override it for one new session:
+
+```sh
+mux project ~/dev/project claude
+```
+
+Running `mux` again reuses the existing session without changing its directory
+or agent. From inside tmux it switches clients instead of attempting a nested
+attachment.
+
+## Layout
+
+- `flake.nix` and `flake.lock`: pinned inputs and platform profiles
+- `home/default.nix`: packages and Home Manager configuration
+- `zshrc/init.zsh`: aliases, local configuration, and `mux`
+- `tmux/tmux.conf`: tmux key bindings and status configuration
+- `nvim/.config/nvim`: Neovim configuration
+- `opencode/.config/opencode`: OpenCode configuration and specialist agents
+- `install.sh`: minimal Nix bootstrap and activation entry point
+
+Application configuration directories remain linked to this repository, so
+editing them takes effect immediately. Package versions and generated shell or
+tmux configuration remain declarative and rollback-capable.
